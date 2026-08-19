@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#define PORT 8000
+#define PORT 8080
 #define BUFF_SIZE 10000
 
 typedef struct{

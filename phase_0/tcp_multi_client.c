@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-#define SERVER_PORT 8000
+#define SERVER_PORT 8080
 #define SERVER_ADDR "127.0.0.1"
 #define BUFF_SIZE 10000
 #define NUM_CLIENTS 3
