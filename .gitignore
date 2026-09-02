@@ -3,3 +3,4 @@ tcp_server
 tcp_multi_client
 udp_server
 udp_client
+tcp_proxy
