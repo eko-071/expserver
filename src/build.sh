@@ -6,4 +6,5 @@ gcc -g -o xps \
     network/xps_connection.c \
     network/xps_listener.c \
     utils/xps_logger.c \
-    utils/xps_utils.c
+    utils/xps_utils.c \
+    utils/xps_buffer.c
