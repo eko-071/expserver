@@ -131,8 +131,22 @@ void listener_connection_handler(void *ptr) {
             close(conn_sock_fd);
             return;
         }
-        xps_pipe_create(listener->core, DEFAULT_PIPE_BUFF_THRESH, client->source, client->sink); 
-        client->listener = listener;
+
+        if(listener->port == 8001){
+            logger(LOG_INFO, "xps_listener_connection_handler()", "Creating upstream connection to 127.0.0.1:3000");
+            xps_connection_t *upstream = xps_upstream_create(listener->core, "127.0.0.1", 3000);
+            if(upstream == NULL) {
+                logger(LOG_ERROR, "xps_listener_connection_handler()", "xps_upstream_create() failed");
+                xps_connection_destroy(client);
+                return;
+            }
+            xps_pipe_create(listener->core, DEFAULT_PIPE_BUFF_THRESH, client->source, upstream->sink);
+            xps_pipe_create(listener->core, DEFAULT_PIPE_BUFF_THRESH, upstream->source, client->sink);
+        }
+        else {
+            xps_pipe_create(listener->core, DEFAULT_PIPE_BUFF_THRESH, client->source, client->sink); 
+            client->listener = listener;
+        }
         
         logger(LOG_INFO, "xps_listener_connection_handler()", "new connection");
     }

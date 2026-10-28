@@ -6,6 +6,7 @@ gcc -g -o xps \
     lib/vec/vec.c \
     network/xps_connection.c \
     network/xps_listener.c \
+    network/xps_upstream.c \
     utils/xps_logger.c \
     utils/xps_utils.c \
     utils/xps_buffer.c
