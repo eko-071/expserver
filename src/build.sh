@@ -1,5 +1,7 @@
 gcc -g -o xps \
     main.c \
+    disk/xps_file.c \
+    disk/xps_mime.c \
     core/xps_core.c \
     core/xps_loop.c \
     core/xps_pipe.c \
