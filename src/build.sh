@@ -7,6 +7,8 @@ gcc -g -o xps \
     core/xps_pipe.c \
     core/xps_session.c \
     lib/vec/vec.c \
+    http/xps_http_req.c \
+    http/xps_http.c \
     network/xps_connection.c \
     network/xps_listener.c \
     network/xps_upstream.c \
