@@ -131,40 +131,13 @@ void listener_connection_handler(void *ptr) {
             close(conn_sock_fd);
             return;
         }
+        client->listener = listener;
 
-        if(listener->port == 8001){
-            logger(LOG_INFO, "xps_listener_connection_handler()", "Creating upstream connection to 127.0.0.1:3000");
-            xps_connection_t *upstream = xps_upstream_create(listener->core, "127.0.0.1", 3000);
-            if(upstream == NULL) {
-                logger(LOG_ERROR, "xps_listener_connection_handler()", "xps_upstream_create() failed");
-                xps_connection_destroy(client);
-                return;
-            }
-            xps_pipe_create(listener->core, DEFAULT_PIPE_BUFF_THRESH, client->source, upstream->sink);
-            xps_pipe_create(listener->core, DEFAULT_PIPE_BUFF_THRESH, upstream->source, client->sink);
-        }
-        else if (listener->port == 8002) {
-            int error;
-            xps_file_t *file = xps_file_create(listener->core, "../public/sample.txt", &error);
-            if (file==NULL) return;
-            xps_pipe_create(listener->core, DEFAULT_PIPE_BUFF_THRESH, file->source, client->sink);
-        }
-        else if (listener->port == 8003) {
-            int error;
-
-            xps_file_t *file = xps_file_create(listener->core, "../temp/file.txt", &error);
-
-            if (file == NULL) {
-                logger(LOG_INFO, "xps_listener_connection_handler()", "File access denied");
-                xps_connection_destroy(client);
-                return;
-            }
-
-            xps_pipe_create(listener->core, DEFAULT_PIPE_BUFF_THRESH, file->source, client->sink);
-        }
-        else {
-            xps_pipe_create(listener->core, DEFAULT_PIPE_BUFF_THRESH, client->source, client->sink); 
-            client->listener = listener;
+        xps_session_t *session = xps_session_create(listener->core, client);
+        if (session == NULL) {
+            logger(LOG_ERROR, "listener_connection_handler()", "xps_session_create() failed");
+            xps_connection_destroy(client);
+            return;
         }
         
         logger(LOG_INFO, "xps_listener_connection_handler()", "new connection");

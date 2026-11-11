@@ -162,12 +162,28 @@ void connection_source_handler(void *ptr) {
 }
 
 void connection_source_close_handler(void *ptr) {
-    /*assert*/
     assert(ptr != NULL);
-    xps_pipe_source_t *source = (xps_pipe_source_t *) ptr;
+
+    xps_pipe_source_t *source = ptr;
+
+    logger(LOG_DEBUG, "connection_source_close_handler()",
+           "source=%p pipe=%p sink=%p",
+           (void *)source,
+           (void *)source->pipe,
+           source->pipe ? (void *)source->pipe->sink : NULL);
+
     xps_connection_t *connection = source->ptr;
 
-    if (!source->active && !source->pipe->sink->active) connection_close(connection, false);
+    if (!source->active &&
+        (source->pipe == NULL ||
+         source->pipe->sink == NULL ||
+         !source->pipe->sink->active)) {
+
+        logger(LOG_DEBUG, "connection_source_close_handler()",
+               "closing connection");
+
+        connection_close(connection, false);
+    }
 }
 
 void connection_sink_handler(void *ptr) {

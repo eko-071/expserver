@@ -197,29 +197,54 @@ bool handle_pipes(xps_loop_t *loop) {
     for (int i = 0; i < loop->core->pipes.length; i++) {
         xps_pipe_t *pipe = loop->core->pipes.data[i];
         if (pipe == NULL) continue;
+        logger(LOG_DEBUG, "handle_pipes", "handling pipe at index %d", i);
+
+        if (pipe->source) {
+            logger(LOG_DEBUG, "handle_pipes", "pipe[%d] source=%p ready=%d active=%d writable=%d", i, (void *)pipe->source, pipe->source->ready, pipe->source->active, xps_pipe_is_writable(pipe));
+        }
+
+        if (pipe->sink) {
+            logger(LOG_DEBUG, "handle_pipes", "pipe[%d] sink=%p ready=%d active=%d readable=%d", i, (void *)pipe->sink, pipe->sink->ready, pipe->sink->active, xps_pipe_is_readable(pipe));
+        }
 
         /*Destroy the pipe if it has no source and sink and continue*/
-        if(pipe->source == NULL && pipe->sink == NULL) {
-            xps_pipe_destroy(pipe);
+        if (pipe->source && pipe->sink == NULL) {
+            logger(LOG_DEBUG, "handle_pipes", "pipe has source but no sink. calling source close handler");
+
+            pipe->source->active = false;
+
+            if (pipe->source->close_cb != NULL) {
+                pipe->source->close_cb(pipe->source);
+            }
+
             continue;
         }
 
         if (pipe->source && pipe->source->ready && xps_pipe_is_writable(pipe)) {
+            logger(LOG_DEBUG, "handle_pipes", "pipe source is ready and writable. calling source handler");
             pipe->source->handler_cb(pipe->source);
         }
 
         if (pipe->sink && pipe->sink->ready && xps_pipe_is_readable(pipe)) {
+            logger(LOG_DEBUG, "handle_pipes", "pipe sink is ready and readable. calling sink handler");
             pipe->sink->handler_cb(pipe->sink);
         }
 
         if (pipe->source && pipe->sink == NULL) {
+            logger(LOG_DEBUG, "handle_pipes", "pipe has source but no sink. source=%p pipe=%p", (void *)pipe->source, (void *)pipe);
             pipe->source->active = false;
+            logger(LOG_DEBUG, "handle_pipes", "calling source close callback");
             pipe->source->close_cb(pipe->source);
+            logger(LOG_DEBUG, "handle_pipes", "returned from source close callback");
         }
 
         if (pipe->sink && pipe->source == NULL && !xps_pipe_is_readable(pipe)) {
+            logger(LOG_DEBUG, "handle_pipes", "pipe has sink but no source and is not readable. calling sink close handler");
             pipe->sink->active = false;
-            pipe->sink->close_cb(pipe->sink);
+            if (pipe->sink->close_cb != NULL) {
+                pipe->sink->close_cb(pipe->sink);
+            }
+            continue;
         }
 
     }
@@ -265,6 +290,10 @@ void filter_nulls(xps_core_t *core) {
     if(core->n_null_pipes > DEFAULT_NULLS_THRESH) {
         vec_filter_null(&core->pipes);
         core->n_null_pipes = 0;
+    }
+    if(core->n_null_sessions > DEFAULT_NULLS_THRESH) {
+        vec_filter_null(&core->sessions);
+        core->n_null_sessions = 0;
     }
 }
 
